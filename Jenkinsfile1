@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    tools{
+        jdk  'jdk11'
+        maven  'maven3'
+    }
+
+    stages {
+        stage('Git CheckOut') {
+            steps {
+                git branch: 'main', url: 'https://github.com/jaiswaladi246/GitOps-CI.git'
+            }
+        }
+        stage('Maven Build') {
+            steps {
+                sh 'mvn clean package -DskipTests=true'
+            }
+        }
+        stage('Docker Build & Push') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                        
+                        sh "docker build -t shopping-cart -f docker/Dockerfile ."
+                        sh "docker tag  shopping-cart adijaiswal/shopping-cart:latest"
+                        sh "docker push adijaiswal/shopping-cart:latest"
+                    }
+                }
+            }
+        }
+        
+    }
+}
