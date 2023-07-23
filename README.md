@@ -10,7 +10,7 @@ Database is in memory **H2**.
 There is a login and registration functionality included.
 
 Users can shop for products. Each user has his own shopping cart (session functionality).
-Checkout is transactional.
+Checkout is transactional .
 
 ## Configuration 
 
