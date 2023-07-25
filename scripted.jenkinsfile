@@ -1,0 +1,34 @@
+#!/usr/bin/env groovy
+import groovy.transform.Field
+
+node{
+     test = tool name: 'maven'  
+     buildenv="nameOfApplication"
+     {
+
+      stage('Git clone')
+      {
+        //clone into current directory so we can run jenkins script
+        git(
+          url: "https://github.com/jaiswaladi246/GitOps-CI.git",
+          branch: "main"
+        )
+        
+      }
+      
+      stage('build') {
+            sh "${test}/bin/mvn clean"
+            sh "${test}/bin/mvn install"
+          }
+
+      stage('creating image and pushed on ECR'){
+            sh "/usr/bin/docker build -t repoName:$BUILD_NUMBER-$buildenv ."
+            sh "aws ecr get-login-password --region ap-south-1 | /usr/bin/docker login --username AWS --password-stdin accountId.dkr.ecr.ap-south-1.amazonaws.com"
+            sh "/usr/bin/docker tag echo_dev:$BUILD_NUMBER-$buildenv accountId.dkr.ecr.ap-south-1.amazonaws.com/repoName:$BUILD_NUMBER-$buildenv"
+            sh "/usr/bin/docker push accountId.dkr.ecr.ap-south-1.amazonaws.com/repoName:$BUILD_NUMBER-$buildenv"    
+       }
+       stage('deployment'){
+           sh "kubectl config use-context arn:aws:eks:ap-south-1:accountId:cluster/eks-cluster && /var/lib/jenkins/bin/kubectl set image deployments/dev-$buildenv $buildenv-container=accountId.dkr.ecr.ap-south-1.amazonaws.com/repoName:$BUILD_NUMBER-$buildenv"
+       }
+} 
+}
