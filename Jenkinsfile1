@@ -28,6 +28,14 @@ pipeline {
                 }
             }
         }
+        stage('Deployment to k8s cluster'){
+            steps{
+                sh 'echo "Choose your cluster by adding the kubeconfig details in the jenkinsfile server"'
+                sh 'kubectl set image deployment spring-boot-k8s-deployment spring-boot-k8s=adijaiswal/shopping-cart:latest'
+                sh 'echo "OR"'
+                sh 'kubect rollout restart deployment/spring-boot-k8s-deployment'
+            }
+        }
         
     }
 }
